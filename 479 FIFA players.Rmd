@@ -1,0 +1,69 @@
+---
+title: "479 FIFA players"
+author: "Group 15"
+date: "3/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## First Combine the Date and Data Inspect(Joining) 
+```{r}
+library(dplyr)
+players2015 <- read.csv("players_15.csv")
+players2016 <- read.csv("players_16.csv")
+players2017 <- read.csv("players_17.csv")
+players2018 <- read.csv("players_18.csv")
+players2019 <- read.csv("players_19.csv")
+players2020 <- read.csv("players_20.csv")
+players2021 <- read.csv("players_21.csv")
+#players2019$contract_valid_until=as.character(players2019$contract_valid_until)
+players <- bind_rows("2015" = players2015, "2016" = players2016, "2017" = players2017, "2018" = players2018, "2019" = players2019, "2020" = players2020, "2021" = players2021, .id = "year")
+str(players[,1:30])
+head(players[,1:30])
+```
+
+## Data Clean up(Cleaning)
+```{r}
+#delete the columns we think we will not use
+players_new <- players[,-c(3,5,24:26,30:34)]
+```
+
+##derive the value of ls-rb(Deriving)
+```{r}
+#calculate the final value of ls-rb
+for(i in 72:97){
+  players_new[,i+26]=as.integer(substr(players_new[,i],1,2))
+}
+for(i in 72:97){
+  players_new[,i+52]=as.integer(substr(players_new[,i],4,4))
+  players_new[,i+52][is.na(players_new[,i+52])]=0
+  players_new[,i+26]=players_new[,i+26]+players_new[,i+52]
+}
+players_new=players_new[,-c(72:97,124:149)]
+
+colnames(players_new)[72:97]=colnames(players2015)[81:106]
+#make the name of ls-rb be same with player position
+colnames(players_new)[72:97]=toupper(colnames(players_new)[72:97])
+```
+
+##Change some column data type. (Cleaning)
+```{r}
+#delete team_position,team_jersey_number(in our visualization designs, we find them useless)
+players_new=players_new[,-(23:24)]
+
+#str(players_new)
+players_new$year=as.integer(players_new$year)
+players_new$age=as.integer(players_new$age)
+players_new$weight_kg=as.integer(players_new$weight_kg)
+players_new$wage_eur=as.integer(players_new$wage_eur)
+players_new$skill_moves=as.integer(players_new$skill_moves)
+players_new$goalkeeping_reflexes=as.integer(players_new$goalkeeping_reflexes)
+```
+
+```{r}
+write.csv(players_new,"curated_data.csv",row.names = FALSE)
+write.csv(head(players_new, 20),"curated_data_head.csv",row.names=FALSE)
+```
